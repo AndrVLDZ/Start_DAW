@@ -11,7 +11,7 @@ class Client(Cmd):
     Client
     """
     prompt = ''
-    intro = "[Welcome] Simple chat room client (Cli version)\n" + \
+    intro = "[Welcome] Simple SimpleDAW client (Cli version)\n" + \
         "[Welcome] Type `help` to get help\n"
 
     def __init__(self, connection_args: SocketConnection):
@@ -26,13 +26,11 @@ class Client(Cmd):
         self.__nickname = None
 
     def __do_payload_thread(self):
-        WARN = '\033[93m'
-        END = '\033[0m'
         thread = threading.Thread(target=make_payload, args=())
-        print(f'{WARN}\n(!) <background process> PAYLOAD (!){END}')
+        print('\n(!) PAYLOAD STARTED (!)')
         thread.setDaemon(True)
         thread.start()
-        print(f'{WARN}\n(!) PAYLOAD FINISHED (!){END}')
+        print('\n(!) PAYLOAD FINISHED (!)')
 
     def __receive_message_thread(self):
         """
@@ -44,11 +42,11 @@ class Client(Cmd):
                 buffer = self.__socket.recv(1024).decode()
                 obj = json.loads(buffer)
 
-                print('[' + str(obj['sender_nickname']) +
-                      '(' + str(obj['sender_id']) + ')' + ']', obj['message'])
-
                 if obj['message'] == 'payload':
+                    print('\n\n')
                     self.__do_payload_thread()
+                else:
+                    print('[' + str(obj['sender_nickname']) + '(' + str(obj['sender_id']) + ')' + ']', obj['message'])
 
             except Exception as err:
                 print(err)

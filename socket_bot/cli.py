@@ -68,6 +68,7 @@ def start_server(conn_opts: Dict[int, Tuple[Any]] = ''):
         else:
             s = Server(conn)
         s.start()
+        s.cmdloop()
 
         print(cl.colorize('OKGREEN', '\nGot it, working on it...\n'))
 

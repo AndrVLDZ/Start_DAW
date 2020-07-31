@@ -1,13 +1,17 @@
 import socket
 import threading
 import json
+from cmd import Cmd
+from typing import List
 from socket_bot.connection import SocketConnection
+from socket_bot.colors import CmdColors
 
 
-class Server:
+class Server(Cmd):
     """
     Server class
     """
+    prompt = '\033[93m(SocketServer console)\033[0m'
 
     def __init__(self, connection_args: SocketConnection):
         """
@@ -16,8 +20,29 @@ class Server:
         # Network connection settings
         self.__conn_params = connection_args
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.__connections = list()
-        self.__nicknames = list()
+        self.__connections: List[socket.socket] = list()
+        self.__nicknames: List[str] = list()
+
+    @property
+    def connections(self) -> List[socket.socket]:
+        return self.__connections
+
+    def __broadcast_server_msg(self, msg: str = 'I AM SERVER'):
+        for ind in range(1, len(self.__connections)):
+            self.__connections[ind].send(
+                json.dumps({
+                    'sender_id': 0,
+                    'sender_nickname': '<SERVER>',
+                    'message': msg}).encode()
+            )
+
+    def do_payload(self, args):
+        self.__broadcast_server_msg('payload')
+
+    def __await_commands(self):
+        cl = CmdColors()
+        print('\n', cl.green_background('SERVER WAITING FOR YOUR COMMANDS'), '\n')
+        self.cmdloop()
 
     def __user_thread(self, user_id):
         """
@@ -72,7 +97,7 @@ class Server:
         ip, port, _ = self.__conn_params
         print("STARTING ...")
         self.__conn_params.print_params()
-        
+
         # Binding IP and PORT
         self.__socket.bind((ip, port))
 
@@ -88,7 +113,7 @@ class Server:
 
         # Start listening
         while True:
-            connection, address = self.__socket.accept()
+            connection, _address = self.__socket.accept()
             print('[Server] Received a new connection',
                   connection.getsockname(), connection.fileno())
 
@@ -112,6 +137,8 @@ class Server:
                         target=self.__user_thread, args=(len(self.__connections) - 1, ))
                     thread.setDaemon(True)
                     thread.start()
+                
+                    self.__await_commands()
                 else:
                     print('[Server] Unable to parse json packet:',
                           connection.getsockname(), connection.fileno())
