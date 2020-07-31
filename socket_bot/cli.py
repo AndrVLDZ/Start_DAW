@@ -29,47 +29,46 @@ def print_options(conn_opts):
     cl = CmdColors()
     print(cl.colorize('HEADER', 'Enter connection type:'))
     for num, opt in conn_opts.items():
-        name, info, ip, port = opt
+        name, conn = opt
+        if conn != ():
+            ip, port, info = conn
+        else:
+            ip, port, info = ('<IP>', '<PORT>', 'Specify all params')
         NAME = cl.colorize('WARNING', name)
         IP = cl.colorize('OKGREEN', ip)
-        PORT = cl.colorize('OKBLUE', port)
+        PORT = cl.colorize('OKBLUE', str(port))
         print('\t\t', num, ') ', NAME, ':', info,
               '\n\t\t\t=> ', IP, ' : ', PORT)
 
 
-def start_server():
+def start_server(conn_opts: Dict[int, Tuple[Any]] = ''):
     """
     Start server, ask user for IP,PORT parameters
     """
     CONN_OPTS: Dict[int, Tuple[Any]] = {
-        1: ('Stdandard: ',  'Start server/client locally', '127.0.0.1', '8888'),
-        2: ('LAN: ',        'Connection in your local network', '0.0.0.0', '<specify PORT>'),
-        3: ('LAN[+]: ',     'Connection in your local network', '<specify IP>', '<specify PORT>'),
+        1: ('Stdandard: ',      SocketConnection('127.0.0.1', 8888, 'Start server/client locally')),
+        2: ('VLDZ ANDROID: ',   SocketConnection('0.0.0.0', 10000, 'Run server on Android')),
+        3: ('Manual: Connection in LAN', ()),
     }
 
     cl = CmdColors()
     print_options(CONN_OPTS)
 
     try:
-        s: Server
         choice = int(input('Type option: '))
 
         if choice not in CONN_OPTS.keys():
             raise ValueError
 
-        opt_name: str = CONN_OPTS[choice][0] + CONN_OPTS[choice][1]
-
-        if choice == 1:
-            s = Server(SocketConnection('127.0.0.1', 8888, opt_name))
-        elif choice == 2:
-            _port = int(input('Type PORT: '))
-            s = Server(SocketConnection('0.0.0.0', _port, opt_name))
-        elif choice == 3:
+        conn: SocketConnection = CONN_OPTS[choice][1]
+        if conn == ():
             _ip = input('Type IP: ')
             _port = int(input('Type PORT: '))
-            s = Server(SocketConnection(_ip, _port, opt_name))
-
+            s = Server(SocketConnection(_ip, _port, CONN_OPTS[choice][0]))
+        else:
+            s = Server(conn)
         s.start()
+
         print(cl.colorize('OKGREEN', '\nGot it, working on it...\n'))
 
     except ValueError:
@@ -81,35 +80,37 @@ def start_server():
         return
 
 
-def connect_client():
+def connect_client(conn_opts: Dict[int, Tuple[Any]] = ''):
     """
     Start client, ask user for IP,PORT parameters
     """
     CONN_OPTS: Dict[int, Tuple[Any]] = {
-        1: ('Stdandard: ',  'Start server/client locally', '127.0.0.1', '8888'),
-        2: ('LAN[+]: ',     'Connection in your local network', '<specify IP>', '<specify PORT>'),
+        1: ('Stdandard: ',      SocketConnection('127.0.0.1', 8888, 'Connect client locally')),
+        2: ('VLDZ ANDROID: ',   SocketConnection('192.168.0.100', 10000, 'Connect to server running on Android')),
+        3: ('Manual: Connection in LAN', ()),
     }
+
+    if conn_opts != '':
+        CONN_OPTS = conn_opts
 
     cl = CmdColors()
     print_options(CONN_OPTS)
 
     try:
-        c: Client
         choice = int(input('Type option: '))
 
         if choice not in CONN_OPTS.keys():
             raise ValueError
 
-        opt_name: str = CONN_OPTS[choice][0] + CONN_OPTS[choice][1]
-
-        if choice == 1:
-            c = Client(SocketConnection('127.0.0.1', 8888, opt_name))
-        elif choice == 2:
+        conn: SocketConnection = CONN_OPTS[choice][1]
+        if conn == ():
             _ip = input('Type IP: ')
             _port = int(input('Type PORT: '))
-            c = Client(SocketConnection(_ip, _port, opt_name))
-
+            c = Client(SocketConnection(_ip, _port, CONN_OPTS[choice][0]))
+        else:
+            c = Client(conn)
         c.start()
+
         print(cl.colorize('OKGREEN', '\nGot it, working on it...\n'))
 
     except ValueError:
