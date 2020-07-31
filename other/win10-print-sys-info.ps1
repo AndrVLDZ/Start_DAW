@@ -23,3 +23,5 @@ foreach ($server in $servers) {
     Remove-CimSession -CimSession $getCimInstParams.CimSession
     [pscustomobject]$output
 }
+
+# source: https://github.com/adbertram/PowerShellForSysadmins/blob/master/Part%20II/Creating%20a%20Server%20Inventory%20Script/Get-ServerInformation.ps1
