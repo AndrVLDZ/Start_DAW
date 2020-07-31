@@ -19,7 +19,7 @@ def payload_for_test(squence):
 def payload_default():
     # 'C:\Program Files\PreSonus\Studio One 4\\Studio One.exe'
     subprocess.Popen(['C:\Program Files\PreSonus\Studio One 4\\Studio One.exe'])
-    keyboard.press('space')
+    keyboard.send('space', do_press=True, do_release=True)
 
 
 def make_payload():
